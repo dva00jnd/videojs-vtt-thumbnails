@@ -44,7 +44,7 @@ const onPlayerReady = (player, options) => {
  * @param    {Object} [options={}]
  *           An object of options left to the plugin author to define.
  */
-const vttThumbnails = function(options) {
+const vttThumbnails = function (options) {
   this.ready(() => {
     onPlayerReady(this, videojs.mergeOptions(defaults, options));
   });
@@ -72,7 +72,6 @@ class vttThumbnailsPlugin {
   constructor(player, options) {
     this.player = player;
     this.options = options;
-    this.listenForDurationChange();
     this.initializeThumbnails();
     this.registeredEvents = {};
     return this;
@@ -106,12 +105,6 @@ class vttThumbnailsPlugin {
     delete this.vttData;
     delete this.thumbnailHolder;
     delete this.lastStyle;
-  }
-
-  listenForDurationChange() {
-    this.player.on('durationchange', () => {
-
-    });
   }
 
   /**
@@ -269,31 +262,26 @@ class vttThumbnailsPlugin {
   }
 
   hideThumbnailHolder() {
+    //console.log('hide test');
     this.thumbnailHolder.style.opacity = '0';
   }
 
   updateThumbnailStyle(percent, width) {
     const duration = this.player.duration();
-    const time = percent * duration;
+    var time = percent * duration;
+    if (this.options.offset) {
+      time = time + this.options.offset;
+    }
+
     const currentStyle = this.getStyleForTime(time);
 
     if (!currentStyle) {
       return this.hideThumbnailHolder();
     }
 
-    const xPos = percent * width;
     const thumbnailWidth = parseInt(currentStyle.width, 10);
-    const halfthumbnailWidth = thumbnailWidth >> 1;
-    const marginRight = width - (xPos + halfthumbnailWidth);
-    const marginLeft = xPos - halfthumbnailWidth;
-
-    if (marginLeft > 0 && marginRight > 0) {
-      this.thumbnailHolder.style.transform = 'translateX(' + (xPos - halfthumbnailWidth) + 'px)';
-    } else if (marginLeft <= 0) {
-      this.thumbnailHolder.style.transform = 'translateX(' + 0 + 'px)';
-    } else if (marginRight <= 0) {
-      this.thumbnailHolder.style.transform = 'translateX(' + (width - thumbnailWidth) + 'px)';
-    }
+    const coeopos = ((percent * width) * 2) - thumbnailWidth;
+    this.thumbnailHolder.style.transform = 'scale(0.5) translateX(' + (coeopos) + 'px)';
 
     if (this.lastStyle && this.lastStyle === currentStyle) {
       return;
